@@ -6,10 +6,16 @@ class CartPole(gym.Env):
     """Generates an environment designed to replicate the classic CartPole RL example environment"""
 
     def __init__(
-        self, space=10, step_limit=10_000, termination_angle=np.pi / 2, acceleration=1
+        self,
+        space=10,
+        step_limit=10_000,
+        termination_angle=np.pi / 2,
+        acceleration=1,
+        step_duration=0.1,
     ):
 
         self.space = space  # m
+        self.step_duration = step_duration  # s
 
         self.step_limit = step_limit
         self.steps = None
@@ -58,6 +64,7 @@ class CartPole(gym.Env):
 
         return {
             "Step": self.steps,
+            "Sim time elapsed": self.steps * self.step_duration,
             "Terminated": self.terminated,
             "Truncated": self.truncated,
         }
@@ -81,4 +88,4 @@ class CartPole(gym.Env):
         pass
 
     def step(self, action):
-        pass
+        """Carries out one step after an action has been taken"""
