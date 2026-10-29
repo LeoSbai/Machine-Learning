@@ -28,10 +28,6 @@ class CartPole(gym.Env):
         self.step_limit = step_limit
         self.steps = 0
 
-        # End conditions
-        self.terminated = False
-        self.truncated = False
-
         # Cart features
         self.cart_pos = None  # m
         self.cart_vel = None  # m/s
@@ -41,15 +37,11 @@ class CartPole(gym.Env):
         self.pole_vel = None  # rad/s
         self.termination_angle = termination_angle
 
-        self.observation_space = gym.spaces.Dict(
-            {
-                "cart position": gym.spaces.Box(-space, space),
-                "cart velocity": gym.spaces.Box(-np.inf, np.inf),
-                "pole position": gym.spaces.Box(
-                    -self.termination_angle, self.termination_angle
-                ),
-                "pole velocity": gym.spaces.Box(-np.inf, np.inf),
-            }
+        # Observation space twice as wide as limits to prevent clipping at terminal state
+        self.observation_space = gym.spaces.Box(
+            low=np.array([-space * 2, -np.inf, -termination_angle * 2, -np.inf]),
+            high=np.array([space * 2, np.inf, termination_angle * 2, np.inf]),
+            dtype=np.float32,
         )
 
         # Two actions, left and right force
@@ -60,12 +52,10 @@ class CartPole(gym.Env):
     def get_obs(self):
         """Returns the state as a dict"""
 
-        return {
-            "cart position": self.cart_pos,
-            "cart velocity": self.cart_vel,
-            "pole position": self.pole_pos,
-            "pole velocity": self.pole_vel,
-        }
+        return np.array(
+            [self.cart_pos, self.cart_vel, self.pole_pos, self.pole_vel],
+            dtype=np.float32,
+        )
 
     def get_info(self):
         """Returns auxiliary information for debugging"""
@@ -73,17 +63,12 @@ class CartPole(gym.Env):
         return {
             "Step": self.steps,
             "Sim time elapsed": self.steps * self.tau,
-            "Terminated": self.terminated,
-            "Truncated": self.truncated,
         }
 
     def reset(self, seed=None, options=None):
         """Resets the environment into a random state"""
 
         super().reset(seed=seed)
-
-        self.terminated = False
-        self.truncated = False
 
         self.steps = 0
 
@@ -123,6 +108,10 @@ class CartPole(gym.Env):
     def step(self, action):
         """Carries out one step after an action has been taken"""
 
+        # Check for invalid action
+        if not self.action_space.contains(action):
+            raise ValueError(f"Invalid action: {action}")
+
         self.steps += 1
 
         # Find the force
@@ -137,21 +126,16 @@ class CartPole(gym.Env):
         self.pole_vel += self.tau * pole_acc
         self.pole_pos += self.tau * self.pole_vel
 
-        # Check for termination
-        if abs(self.cart_pos) > self.space:
-            reward = -1000
-            self.terminated = True
-        elif abs(self.pole_pos) > self.termination_angle:
-            reward = -100
-            self.terminated = True
-        else:
-            reward = 1
+        # Check for terminal conditions
+        terminated = (
+            abs(self.cart_pos) > self.space
+            or abs(self.pole_pos) > self.termination_angle
+        )
+        truncated = self.step_limit is not None and self.steps >= self.step_limit
 
-        # Check for truncation
-        if (self.step_limit is not None) and (self.steps > self.step_limit):
-            self.truncated = True
+        reward = 1
 
         observations = self.get_obs()
         info = self.get_info()
 
-        return observations, reward, self.terminated, self.truncated, info
+        return observations, reward, terminated, truncated, info
