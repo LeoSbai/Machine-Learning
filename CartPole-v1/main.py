@@ -1,4 +1,4 @@
 import environment
 
 env = environment.CartPole()
-env.reset()
+obs, info = env.reset()
