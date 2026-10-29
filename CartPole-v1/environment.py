@@ -49,7 +49,7 @@ class CartPole(gym.Env):
 
         self.action_to_force = {0: -force, 1: force}
 
-    def get_obs(self):
+    def _get_obs(self):
         """Returns the state as a dict"""
 
         return np.array(
@@ -57,7 +57,7 @@ class CartPole(gym.Env):
             dtype=np.float32,
         )
 
-    def get_info(self):
+    def _get_info(self):
         """Returns auxiliary information for debugging"""
 
         return {
@@ -80,12 +80,12 @@ class CartPole(gym.Env):
         self.pole_pos = self.np_random.uniform(-0.1, 0.1)
         self.pole_vel = 0
 
-        return self.get_obs(), self.get_info()
+        return self._get_obs(), self._get_info()
 
     def render(self):
         pass
 
-    def dynamics(self, force):
+    def _dynamics(self, force):
         costheta = np.cos(self.pole_pos)
         sintheta = np.sin(self.pole_pos)
 
@@ -135,7 +135,7 @@ class CartPole(gym.Env):
 
         reward = 1
 
-        observations = self.get_obs()
-        info = self.get_info()
+        observations = self._get_obs()
+        info = self._get_info()
 
         return observations, reward, terminated, truncated, info
