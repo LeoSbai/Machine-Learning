@@ -80,7 +80,7 @@ class DQNAgent:
 
 
 class ReplayBuffer:
-    def __init__(self, size):
+    def __init__(self, size: int):
         self.size = size
         self.buffer = deque(maxlen=size)
 

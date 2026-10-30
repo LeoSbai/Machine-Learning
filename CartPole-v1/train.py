@@ -51,7 +51,7 @@ class Train:
             self.memory.push(state, action, reward, next_state, finished)
 
             # Once the memory is full, start learning
-            if len(self.memory) > replay_sample_size:
+            if len(self.memory) >= self.memory.max_size():
                 self.agent.learn(*self.memory.sample(replay_sample_size))
 
             # Every target_update_steps, update the target network
