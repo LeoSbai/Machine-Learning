@@ -8,7 +8,7 @@ class CartPole(gym.Env):
     def __init__(
         self,
         space=10,
-        step_limit=None,
+        step_limit=500,
         termination_angle=np.pi / 2,
         force=10,
         tau=0.01,  # Step duration
@@ -29,18 +29,22 @@ class CartPole(gym.Env):
         self.steps = 0
 
         # Cart features
-        self.cart_pos = None  # m
-        self.cart_vel = None  # m/s
+        self.cart_pos = 0.0  # m
+        self.cart_vel = 0.0  # m/s
 
         # Pole features
-        self.pole_pos = None  # rad
-        self.pole_vel = None  # rad/s
+        self.pole_pos = 0.0  # rad
+        self.pole_vel = 0.0  # rad/s
         self.termination_angle = termination_angle
 
         # Observation space twice as wide as limits to prevent clipping at terminal state
         self.observation_space = gym.spaces.Box(
-            low=np.array([-space * 2, -np.inf, -termination_angle * 2, -np.inf]),
-            high=np.array([space * 2, np.inf, termination_angle * 2, np.inf]),
+            low=np.array(
+                [-space * 2, -np.inf, -termination_angle * 2, -np.inf], dtype=np.float32
+            ),
+            high=np.array(
+                [space * 2, np.inf, termination_angle * 2, np.inf], dtype=np.float32
+            ),
             dtype=np.float32,
         )
 
@@ -65,7 +69,7 @@ class CartPole(gym.Env):
             "Sim time elapsed": self.steps * self.tau,
         }
 
-    def reset(self, seed=None, options=None):
+    def reset_env(self, seed=None, options=None):
         """Resets the environment into a random state"""
 
         super().reset(seed=seed)
@@ -118,7 +122,7 @@ class CartPole(gym.Env):
         force = self.action_to_force[action]
 
         # Implement the force
-        cart_acc, pole_acc = self.dynamics(force)
+        cart_acc, pole_acc = self._dynamics(force)
 
         # Update the state
         self.cart_vel += self.tau * cart_acc
@@ -131,7 +135,7 @@ class CartPole(gym.Env):
             abs(self.cart_pos) > self.space
             or abs(self.pole_pos) > self.termination_angle
         )
-        truncated = self.step_limit is not None and self.steps >= self.step_limit
+        truncated = (self.step_limit is not None) and (self.steps >= self.step_limit)
 
         reward = 1
 
