@@ -33,7 +33,7 @@ class Train:
         """
 
         # Reset the environment
-        state, _ = self.env.reset_env()
+        state, _ = self.env.reset()
         finished = False
         ep_steps = 0
         ep_reward = 0

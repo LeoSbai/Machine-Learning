@@ -69,7 +69,7 @@ class CartPole(gym.Env):
             "Sim time elapsed": self.steps * self.tau,
         }
 
-    def reset_env(self, seed=None, options=None):
+    def reset(self, seed=None, options=None):
         """Resets the environment into a random state"""
 
         super().reset(seed=seed)
