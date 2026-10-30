@@ -1,5 +1,7 @@
 import gymnasium as gym
 import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.patches import Rectangle
 
 
 class CartPole(gym.Env):
@@ -87,7 +89,45 @@ class CartPole(gym.Env):
         return self._get_obs(), self._get_info()
 
     def render(self):
-        pass
+
+        if not hasattr(self, "fig"):
+            plt.ion()
+            self.fig, self.ax = plt.subplots(figsize=(8, 3))
+
+        self.ax.clear()
+
+        # Track
+        self.ax.plot([-self.space, self.space], [0, 0], "k-", lw=2)
+
+        # Cart
+        cart_w = 0.5
+        cart_h = 0.25
+
+        self.ax.add_patch(
+            Rectangle(
+                (self.cart_pos - cart_w / 2, -cart_h / 2),
+                cart_w,
+                cart_h,
+                color="blue",
+            )
+        )
+
+        # Pole
+        pole_x = self.cart_pos + self.pole_length * np.sin(self.pole_pos)
+        pole_y = self.pole_length * np.cos(self.pole_pos)
+
+        self.ax.plot(
+            [self.cart_pos, pole_x],
+            [0, pole_y],
+            "r-",
+            lw=4,
+        )
+
+        self.ax.set_xlim(-self.space, self.space)
+        self.ax.set_ylim(-0.5, self.pole_length + 0.5)
+        self.ax.set_aspect("equal")
+
+        plt.pause(0.001)
 
     def _dynamics(self, force):
         costheta = np.cos(self.pole_pos)
